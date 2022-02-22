@@ -1,0 +1,7 @@
+@hostname = localhost
+@port = 8080
+@host = {{hostname}}:{{port}}
+@URL = http://{{host}}/api
+
+### Get images
+GET {{URL}}/images?rumah HTTP/1.1

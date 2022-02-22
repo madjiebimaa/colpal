@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/Clarifai/clarifai-go-grpc/proto/clarifai/api"
 	"github.com/gin-gonic/gin"
+
+	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/madjiebimaa/colpal/app/config"
 	"github.com/madjiebimaa/colpal/models"
+	"github.com/madjiebimaa/colpal/requests"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -20,15 +28,36 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
-	r.GET("/api/images", func(c *gin.Context) {
-		q := c.Query("q")
-		url := fmt.Sprintf("https://api.unsplash.com/photos/?query=%s&client_id=%s", q, os.Getenv("UNSPLASH_API_KEY"))
+	conn, err := grpc.Dial(
+		"api.clarifai.com:443",
+		grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")),
+	)
+	if err != nil {
+		panic(err)
+	}
+	client := api.NewV2Client(conn)
 
+	ctx := metadata.AppendToOutgoingContext(
+		context.Background(),
+		"Authorization", "Key "+os.Getenv("CLARIFAI_API_KEY"),
+	)
+
+	r.GET("/api/images", func(c *gin.Context) {
+		var reqBody requests.SearchImages
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			log.Println(err)
+			return
+		}
+
+		url := fmt.Sprintf("https://api.unsplash.com/photos/?query=%s", reqBody.Query)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
+		req.Header.Set("Accept-Version", "v1")
+		req.Header.Set("Authorization", "Client-ID "+os.Getenv("UNSPLASH_API_KEY"))
 
 		client := http.DefaultClient
 		res, err := client.Do(req)
@@ -44,6 +73,71 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, images)
+	})
+
+	r.GET("/api/palettes", func(c *gin.Context) {
+		var reqBody requests.GetPalettes
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			log.Println(err)
+			return
+		}
+
+		ColorModelID := "eeed0b6733a644cea07cf4c60f87ebb7"
+		res, err := client.PostModelOutputs(
+			ctx,
+			&api.PostModelOutputsRequest{
+				ModelId: ColorModelID,
+				Inputs: []*api.Input{
+					{
+						Data: &api.Data{
+							Image: &api.Image{
+								Url: reqBody.URL,
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		data := res.Outputs[0].Data.Colors
+		var palettes []models.Palette
+		for _, d := range data {
+			c, _ := colorful.Hex(d.W3C.Hex)
+			r, g, b := c.FastLinearRgb()
+
+			lightColor := colorful.Color{
+				R: r + r*0.1 + 10,
+				G: g + g*0.1 + 10,
+				B: b + b*0.1 + 10,
+			}
+
+			darkColor := colorful.Color{
+				R: r - r*0.1 - 10,
+				G: g - g*0.1 - 10,
+				B: b - b*0.1 - 10,
+			}
+
+			palette := models.Palette{
+				Main: &models.Color{
+					Hex: d.W3C.Hex,
+				},
+				Dark: &models.Color{
+					Hex: darkColor.Hex(),
+				},
+				Light: &models.Color{
+					Hex: lightColor.Hex(),
+				},
+				Value: d.Value,
+			}
+
+			palettes = append(palettes, palette)
+		}
+
+		c.JSON(http.StatusOK, palettes)
 	})
 
 	if err := r.Run(":8080"); err != nil {

@@ -1,0 +1,7 @@
+@hostname = localhost
+@port = 8080
+@host = {{hostname}}:{{port}}
+@URL = http://{{host}}/api
+
+### Get palettes
+GET {{URL}}/palettes HTTP/1.1
