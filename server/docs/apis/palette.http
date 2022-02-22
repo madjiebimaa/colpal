@@ -5,3 +5,12 @@
 
 ### Get palettes
 GET {{URL}}/palettes HTTP/1.1
+
+### Get palettes recommendation
+GET {{URL}}/palettes/recommendation HTTP/1.1
+
+{
+    "r": 12.12,
+    "g": 50.55,
+    "b": 112.31
+}

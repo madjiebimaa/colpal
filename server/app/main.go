@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Clarifai/clarifai-go-grpc/proto/clarifai/api"
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,7 @@ func main() {
 			log.Println(err)
 			return
 		}
+		defer res.Body.Close()
 
 		var images []models.Image
 		if err := json.NewDecoder(res.Body).Decode(&images); err != nil {
@@ -140,7 +142,74 @@ func main() {
 		c.JSON(http.StatusOK, palettes)
 	})
 
-	if err := r.Run(":8080"); err != nil {
+	r.GET("/api/palettes/recommendation", func(c *gin.Context) {
+		var reqBody requests.GetPalettesRecommendation
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			log.Println(err)
+			return
+		}
+
+		h := struct {
+			Input []interface{} `json:"input"`
+			Model string        `json:"model"`
+		}{
+			Input: []interface{}{
+				[]float32{
+					reqBody.R,
+					reqBody.G,
+					reqBody.B,
+				},
+				"N",
+				"N",
+				"N",
+				"N",
+			},
+			Model: "default",
+		}
+
+		b, _ := json.Marshal(h)
+		payload := strings.NewReader(string(b))
+		url := "http://colormind.io/api/"
+		req, err := http.NewRequest(http.MethodGet, url, payload)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		client := http.DefaultClient
+		res, err := client.Do(req)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		defer res.Body.Close()
+
+		type Data struct {
+			Result [][]int `json:"result"`
+		}
+
+		var data Data
+		if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+			log.Println(err)
+			return
+		}
+
+		var colors []models.Color
+		for _, d := range data.Result {
+			var color models.Color
+			newColor := colorful.Color{
+				R: float64(d[0]),
+				G: float64(d[1]),
+				B: float64(d[2]),
+			}
+			color.Hex = newColor.Hex()
+			colors = append(colors, color)
+		}
+
+		c.JSON(http.StatusOK, colors)
+	})
+
+	if err := r.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalf("can't connect to server port 8080: %s\n", err)
 	}
 }
