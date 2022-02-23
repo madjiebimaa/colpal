@@ -28,7 +28,6 @@ func main() {
 	}
 
 	r := gin.New()
-
 	r.Use(gin.Logger(), gin.Recovery(), middlewares.CORS())
 
 	conn, err := grpc.Dial(
@@ -144,7 +143,7 @@ func main() {
 		c.JSON(http.StatusOK, palettes)
 	})
 
-	r.POST("/api/palettes/recommendation", func(c *gin.Context) {
+	r.POST("/api/palettes/recommendations", func(c *gin.Context) {
 		var reqBody requests.GetPalettesRecommendation
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			log.Println(err)
