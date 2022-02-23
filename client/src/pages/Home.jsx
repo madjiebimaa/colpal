@@ -1,17 +1,9 @@
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ColorizeIcon from "@mui/icons-material/Colorize";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import HomeIcon from "@mui/icons-material/Home";
-import PersonIcon from "@mui/icons-material/Person";
 import {
-  BottomNavigation,
-  BottomNavigationAction,
   Button,
-  Container,
   Divider,
   Grid,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -27,7 +19,6 @@ export default function Home() {
   const [imageIdx, setImageIdx] = useState(0);
   const [palettes, setPalettes] = useState([]);
   const [hexRecommendations, setHexRecommendations] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value);
@@ -93,7 +84,7 @@ export default function Home() {
   };
 
   return (
-    <Container>
+    <>
       <Typography variant="h4" component="h1" align="center" sx={{ mt: 3 }}>
         colpal
       </Typography>
@@ -172,41 +163,6 @@ export default function Home() {
           );
         })}
       </Grid>
-
-      <Paper
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
-        elevation={3}
-      >
-        <BottomNavigation showLabels>
-          {/* <Link to="/"> */}
-          <BottomNavigationAction
-            label="Home"
-            icon={<HomeIcon />}
-            onClick={() => {
-              // history.push("/");
-            }}
-          />
-          {/* </Link> */}
-          {/* <Link to="favorites"> */}
-          <BottomNavigationAction
-            label="Favorites"
-            icon={<FavoriteIcon />}
-            onClick={() => {
-              //   history.push("/favorites");
-            }}
-          />
-          {/* </Link> */}
-          {/* <Link to={currentUser === null ? "accounts" : "auth/login"}> */}
-          <BottomNavigationAction
-            label={currentUser === null ? "Account" : "User"}
-            icon={currentUser === null ? <AccountBoxIcon /> : <PersonIcon />}
-            onClick={() => {
-              //   history.push(currentUser === null ? "accounts" : "auth/login");
-            }}
-          />
-          {/* </Link> */}
-        </BottomNavigation>
-      </Paper>
-    </Container>
+    </>
   );
 }
