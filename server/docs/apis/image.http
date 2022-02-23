@@ -4,4 +4,4 @@
 @URL = http://{{host}}/api
 
 ### Get images
-GET {{URL}}/images?rumah HTTP/1.1
+GET {{URL}}/images?q=images HTTP/1.1

@@ -4,10 +4,14 @@
 @URL = http://{{host}}/api
 
 ### Get palettes
-GET {{URL}}/palettes HTTP/1.1
+POST  {{URL}}/palettes HTTP/1.1
+
+{
+    "url": "https://images.unsplash.com/photo-1638913974023-cef988e81629?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwyMzY0MzV8MXwxfGFsbHwxfHx8fHx8Mnx8MTY0NTYyMTUzNQ&ixlib=rb-1.2.1&q=80&w=400"
+}
 
 ### Get palettes recommendation
-GET {{URL}}/palettes/recommendation HTTP/1.1
+POST {{URL}}/palettes/recommendation HTTP/1.1
 
 {
     "r": 12.12,

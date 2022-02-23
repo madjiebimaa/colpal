@@ -5,7 +5,5 @@ type GetPalettes struct {
 }
 
 type GetPalettesRecommendation struct {
-	R float32 `json:"r"`
-	G float32 `json:"g"`
-	B float32 `json:"b"`
+	Hex string `json:"hex"`
 }

@@ -14,6 +14,7 @@ import (
 
 	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/madjiebimaa/colpal/app/config"
+	"github.com/madjiebimaa/colpal/middlewares"
 	"github.com/madjiebimaa/colpal/models"
 	"github.com/madjiebimaa/colpal/requests"
 	"google.golang.org/grpc"
@@ -27,7 +28,8 @@ func main() {
 	}
 
 	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery())
+
+	r.Use(gin.Logger(), gin.Recovery(), middlewares.CORS())
 
 	conn, err := grpc.Dial(
 		"api.clarifai.com:443",
@@ -44,13 +46,13 @@ func main() {
 	)
 
 	r.GET("/api/images", func(c *gin.Context) {
-		var reqBody requests.SearchImages
-		if err := c.ShouldBindJSON(&reqBody); err != nil {
+		var reqQuery requests.SearchImages
+		if err := c.ShouldBindQuery(&reqQuery); err != nil {
 			log.Println(err)
 			return
 		}
 
-		url := fmt.Sprintf("https://api.unsplash.com/photos/?query=%s", reqBody.Query)
+		url := fmt.Sprintf("https://api.unsplash.com/photos/?query=%s", reqQuery.Query)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			log.Println(err)
@@ -77,7 +79,7 @@ func main() {
 		c.JSON(http.StatusOK, images)
 	})
 
-	r.GET("/api/palettes", func(c *gin.Context) {
+	r.POST("/api/palettes", func(c *gin.Context) {
 		var reqBody requests.GetPalettes
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			log.Println(err)
@@ -108,8 +110,8 @@ func main() {
 		data := res.Outputs[0].Data.Colors
 		var palettes []models.Palette
 		for _, d := range data {
-			c, _ := colorful.Hex(d.W3C.Hex)
-			r, g, b := c.FastLinearRgb()
+			color, _ := colorful.Hex(d.W3C.Hex)
+			r, g, b := color.FastLinearRgb()
 
 			lightColor := colorful.Color{
 				R: r + r*0.1 + 10,
@@ -142,12 +144,15 @@ func main() {
 		c.JSON(http.StatusOK, palettes)
 	})
 
-	r.GET("/api/palettes/recommendation", func(c *gin.Context) {
+	r.POST("/api/palettes/recommendation", func(c *gin.Context) {
 		var reqBody requests.GetPalettesRecommendation
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			log.Println(err)
 			return
 		}
+
+		color, _ := colorful.Hex(reqBody.Hex)
+		r, g, b := color.FastLinearRgb()
 
 		h := struct {
 			Input []interface{} `json:"input"`
@@ -155,9 +160,9 @@ func main() {
 		}{
 			Input: []interface{}{
 				[]float32{
-					reqBody.R,
-					reqBody.G,
-					reqBody.B,
+					float32(r),
+					float32(g),
+					float32(b),
 				},
 				"N",
 				"N",
@@ -167,8 +172,8 @@ func main() {
 			Model: "default",
 		}
 
-		b, _ := json.Marshal(h)
-		payload := strings.NewReader(string(b))
+		by, _ := json.Marshal(h)
+		payload := strings.NewReader(string(by))
 		url := "http://colormind.io/api/"
 		req, err := http.NewRequest(http.MethodGet, url, payload)
 		if err != nil {
