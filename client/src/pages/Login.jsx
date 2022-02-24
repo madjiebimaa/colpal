@@ -17,6 +17,8 @@ export default function Login() {
     password: "",
   });
 
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+
   const navigate = useNavigate();
 
   const handleFieldChange = ({ target: { name, value } }) => {
@@ -25,8 +27,14 @@ export default function Login() {
 
   const handleLoginClick = async () => {
     try {
+      if (usernameOrEmail.includes("@")) {
+        setUser({ ...user, username: "" });
+      } else {
+        setUser({ ...user, email: "" });
+      }
+
       const res = await axios({
-        method: "POST",
+        method: "GET",
         url: "http://localhost:8080/api/users",
         data: user,
       });
@@ -51,25 +59,23 @@ export default function Login() {
           <Grid item>
             <Stack direction="column" spacing={2} sx={{ m: 2 }}>
               <TextField
-                type="text"
-                name="username"
-                label="username"
+                type={usernameOrEmail.includes("@") ? "email" : "text"}
+                name={usernameOrEmail.includes("@") ? "email" : "username"}
+                label="username/email"
                 required
-                onChange={(e) => handleFieldChange(e)}
-              />
-              <TextField
-                type="email"
-                name="email"
-                label="email"
-                required
-                onChange={(e) => handleFieldChange(e)}
+                onChange={(e) => {
+                  setUsernameOrEmail(e.target.value);
+                  handleFieldChange(e);
+                }}
               />
               <TextField
                 type="password"
                 name="password"
                 label="password"
                 required
-                onChange={(e) => handleFieldChange(e)}
+                onChange={(e) => {
+                  handleFieldChange(e);
+                }}
               />
               <Button
                 type="submit"
