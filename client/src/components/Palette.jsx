@@ -22,9 +22,11 @@ export default function Palette({ hex, handleClick, icon }) {
           <Button size="small" disabled>
             {hex}
           </Button>
-          <Button size="small" onClick={() => handleClick(hex)}>
-            {icon}
-          </Button>
+          {icon != null ? (
+            <Button size="small" onClick={() => handleClick(hex)}>
+              {icon}
+            </Button>
+          ) : null}
         </ButtonGroup>
       </Card>
     </Grid>

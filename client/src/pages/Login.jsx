@@ -63,6 +63,9 @@ export default function Login() {
                 name={usernameOrEmail.includes("@") ? "email" : "username"}
                 label="username/email"
                 required
+                value={
+                  usernameOrEmail.includes("@") ? user.email : user.username
+                }
                 onChange={(e) => {
                   setUsernameOrEmail(e.target.value);
                   handleFieldChange(e);
@@ -73,6 +76,7 @@ export default function Login() {
                 name="password"
                 label="password"
                 required
+                value={user.password}
                 onChange={(e) => {
                   handleFieldChange(e);
                 }}

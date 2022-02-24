@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useState } from "react";
+import FavoriteHexs from "../components/FavoritePalette";
 import ImageSlider from "../components/ImageSlider";
 import Palette from "../components/Palette";
 
@@ -19,6 +20,7 @@ export default function Home() {
   const [imageIdx, setImageIdx] = useState(0);
   const [palettes, setPalettes] = useState([]);
   const [hexRecommendations, setHexRecommendations] = useState([]);
+  const [favoriteHexs, setFavoriteHexs] = useState([]);
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value);
@@ -83,6 +85,12 @@ export default function Home() {
     }
   };
 
+  const handleAddHexToFavoriteClick = (hex) => {
+    if (!favoriteHexs.includes(hex)) {
+      setFavoriteHexs([...favoriteHexs, hex]);
+    }
+  };
+
   return (
     <>
       <Typography variant="h4" component="h1" textAlign="center" sx={{ mt: 3 }}>
@@ -128,20 +136,20 @@ export default function Home() {
             domain colors
           </Typography>
           <Divider />
+          <Grid container justifyContent="center" spacing={1} sx={{ mt: 1 }}>
+            {palettes.map((palette) => {
+              return (
+                <Palette
+                  key={palette.main.hex}
+                  hex={palette.main.hex}
+                  handleClick={handleRecommendationPaletteClick}
+                  icon={<ColorizeIcon />}
+                />
+              );
+            })}
+          </Grid>
         </>
       ) : null}
-      <Grid container justifyContent="center" spacing={1} sx={{ mt: 1 }}>
-        {palettes.map((palette) => {
-          return (
-            <Palette
-              key={palette.main.hex}
-              hex={palette.main.hex}
-              handleClick={handleRecommendationPaletteClick}
-              icon={<ColorizeIcon />}
-            />
-          );
-        })}
-      </Grid>
 
       {hexRecommendations.length !== 0 ? (
         <>
@@ -149,25 +157,37 @@ export default function Home() {
             recommendation colors
           </Typography>
           <Divider />
+          <Grid
+            container
+            justifyContent="center"
+            spacing={1}
+            sx={{ mt: 1, mb: 10 }}
+          >
+            {hexRecommendations.map((hexRecommendation) => {
+              return (
+                <Palette
+                  key={hexRecommendation.hex + "-favorite"}
+                  hex={hexRecommendation.hex}
+                  handleClick={() =>
+                    handleAddHexToFavoriteClick(hexRecommendation.hex)
+                  }
+                  icon={<AddCircleIcon />}
+                />
+              );
+            })}
+          </Grid>
         </>
       ) : null}
-      <Grid
-        container
-        justifyContent="center"
-        spacing={1}
-        sx={{ mt: 1, mb: 10 }}
-      >
-        {hexRecommendations.map((hexRecommendation) => {
-          return (
-            <Palette
-              key={hexRecommendation.hex}
-              hex={hexRecommendation.hex}
-              handleClick={() => console.log("NOT IMPLEMENTED")}
-              icon={<AddCircleIcon />}
-            />
-          );
-        })}
-      </Grid>
+
+      {favoriteHexs.length !== 0 ? (
+        <>
+          <Typography variant="h5" component="h3" align="center" sx={{ mt: 3 }}>
+            favorite colors
+          </Typography>
+          <Divider />
+          <FavoriteHexs hexs={favoriteHexs} />
+        </>
+      ) : null}
     </>
   );
 }

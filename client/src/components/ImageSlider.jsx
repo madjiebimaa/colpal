@@ -17,6 +17,7 @@ export default function ImageSlider({
             alt="search result"
             height="240"
             image={image.urls.small}
+            loading="lazy"
           />
           <CardActions>
             <Grid container justifyContent="center">
