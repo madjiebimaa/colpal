@@ -85,7 +85,7 @@ export default function Home() {
 
   return (
     <>
-      <Typography variant="h4" component="h1" align="center" sx={{ mt: 3 }}>
+      <Typography variant="h4" component="h1" textAlign="center" sx={{ mt: 3 }}>
         colpal
       </Typography>
       <Divider />
@@ -94,10 +94,15 @@ export default function Home() {
         <Grid item>
           <Stack direction="row" spacing={2} sx={{ m: 2 }}>
             <TextField
+              type="search"
               label="search image"
               onChange={(e) => handleSearchChange(e)}
             />
-            <Button size="small" onClick={() => handleSearchClick()}>
+            <Button
+              type="submit"
+              size="small"
+              onClick={() => handleSearchClick()}
+            >
               find
             </Button>
           </Stack>
